@@ -18,6 +18,7 @@
 #include <chrono>
 
 #include "stubborn_buddies/visibility_control.h"
+#include "stubborn_buddies/stubborn_values.hpp"
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_components/register_node_macro.hpp"
@@ -29,9 +30,6 @@
 using namespace std::chrono_literals;
 
 constexpr std::chrono::milliseconds LEASE_DELTA = 20ms; ///< Buffer added to heartbeat to define lease.
-constexpr char DEFAULT_HEARTBEAT_NAME[] = "heartbeat";
-constexpr char DEFAULT_INACTIVE_HEARTBEAT_NAME[] = "inactive_heartbeat";
-constexpr char DEFAULT_ACTIVE_STATUS_NAME[] = "active_status";
 
 namespace lifecycle_heartbeat
 {

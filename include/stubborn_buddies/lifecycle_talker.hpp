@@ -18,6 +18,7 @@
 #include <chrono>
 
 #include "stubborn_buddies/visibility_control.h"
+#include "stubborn_buddies/stubborn_values.hpp"
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_components/register_node_macro.hpp"

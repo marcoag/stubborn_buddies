@@ -16,6 +16,7 @@
 #define FAILOVER__LIFECYCLE_WATCHDOG_HPP_
 
 #include "stubborn_buddies/visibility_control.h"
+#include "stubborn_buddies/stubborn_values.hpp"
 
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_components/register_node_macro.hpp"
@@ -23,11 +24,6 @@
 
 #include "sw_watchdog_msgs/msg/heartbeat.hpp"
 #include "sw_watchdog_msgs/msg/status.hpp"
-
-constexpr char DEFAULT_HEARTBEAT_NAME[] = "heartbeat";
-constexpr char DEFAULT_INACTIVE_HEARTBEAT_NAME[] = "inactive_heartbeat";
-constexpr char DEFAULT_INACTIVE_STATUS_NAME[] = "inactive_status";
-constexpr char DEFAULT_ACTIVE_STATUS_NAME[] = "active_status";
 
 using namespace std::chrono_literals;
 

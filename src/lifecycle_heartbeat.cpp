@@ -19,9 +19,9 @@ namespace lifecycle_heartbeat
     
 LifecycleHeartbeat::LifecycleHeartbeat(const rclcpp::NodeOptions& options)
   : rclcpp_lifecycle::LifecycleNode("lifecycle_heartbeat", options),
-  heartbeat_topic_(DEFAULT_HEARTBEAT_NAME), active_node_(true),
+  heartbeat_topic_(stubborn_values::DEFAULT_HEARTBEAT_NAME), active_node_(true),
   heartbeat_period_(200ms), qos_profile_(1),
-  active_status_topic_(DEFAULT_ACTIVE_STATUS_NAME)
+  active_status_topic_(stubborn_values::DEFAULT_ACTIVE_STATUS_NAME)
   
 {
   //Declare parameters
@@ -59,10 +59,10 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
   //publish on /heartbeat if active node otherwise publish on /watchdogs_heartbeat
   //and subscribe to the active node status in case we need to take over
   if(active_node_)
-    heartbeat_topic_ = std::string(DEFAULT_HEARTBEAT_NAME);
+    heartbeat_topic_ = std::string(stubborn_values::DEFAULT_HEARTBEAT_NAME);
   else
   {
-    heartbeat_topic_ = std::string(DEFAULT_INACTIVE_HEARTBEAT_NAME);
+    heartbeat_topic_ = std::string(stubborn_values::DEFAULT_INACTIVE_HEARTBEAT_NAME);
     status_sub_ = this->create_subscription<sw_watchdog_msgs::msg::Status>(
       active_status_topic_,
       10,

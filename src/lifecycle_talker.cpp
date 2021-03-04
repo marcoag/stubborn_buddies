@@ -20,7 +20,7 @@ namespace lifecycle_talker
 LifecycleTalker::LifecycleTalker(const rclcpp::NodeOptions& options)
   : rclcpp_lifecycle::LifecycleNode("lifecycle_talker", options),
   active_node_(true), count_(0), talker_period_(1000ms),
-  active_status_topic_(DEFAULT_ACTIVE_STATUS_NAME)
+  active_status_topic_(stubborn_values::DEFAULT_ACTIVE_STATUS_NAME)
 {
   //Declare parameters
   //by default we are the active node

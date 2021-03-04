@@ -20,7 +20,7 @@ namespace lifecycle_watchdog
 LifecycleWatchdog::LifecycleWatchdog(const rclcpp::NodeOptions& options)
   : rclcpp_lifecycle::LifecycleNode("lifecycle_watchdog", options),
   active_node_(true), qos_profile_(1), status_topic_(),
-  heartbeat_topic_(DEFAULT_INACTIVE_HEARTBEAT_NAME), lease_duration_(400ms)
+  heartbeat_topic_(stubborn_values::DEFAULT_INACTIVE_HEARTBEAT_NAME), lease_duration_(400ms)
 {
   //Declare parameters
   //by default we are the active node
@@ -88,15 +88,15 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
     //If we are the active node we watch for the inactive heartbeat
     if(active_node_)
     {
-      heartbeat_topic_ = std::string(DEFAULT_INACTIVE_HEARTBEAT_NAME);
-      status_topic_ = std::string(DEFAULT_INACTIVE_STATUS_NAME);
+      heartbeat_topic_ = std::string(stubborn_values::DEFAULT_INACTIVE_HEARTBEAT_NAME);
+      status_topic_ = std::string(stubborn_values::DEFAULT_INACTIVE_STATUS_NAME);
       //spawn the inactive node
       system("ros2 run stubborn_buddies linktime_composition --ros-args -p active_node:=false&");
     }
     else
     {
-      heartbeat_topic_ = std::string(DEFAULT_HEARTBEAT_NAME);
-      status_topic_ = std::string(DEFAULT_ACTIVE_STATUS_NAME);
+      heartbeat_topic_ = std::string(stubborn_values::DEFAULT_HEARTBEAT_NAME);
+      status_topic_ = std::string(stubborn_values::DEFAULT_ACTIVE_STATUS_NAME);
       //we need to suscribe to our own topic to be able to reconfigure
       //without breaking the other callbacks, which is what happens if
       //we call cleanup() in missed_heartbeat()

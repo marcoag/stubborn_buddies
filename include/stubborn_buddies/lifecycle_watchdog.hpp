@@ -60,6 +60,7 @@ private:
   rclcpp::SubscriptionOptions heartbeat_sub_options_;
   std::string status_topic_;
   std::string heartbeat_topic_;
+  std::string innactive_node_command_;
   /// The lease duration granted to the remote (heartbeat) publisher
   std::chrono::milliseconds lease_duration_;
   

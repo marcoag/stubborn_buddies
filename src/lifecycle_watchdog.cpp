@@ -27,6 +27,8 @@ LifecycleWatchdog::LifecycleWatchdog(const rclcpp::NodeOptions& options)
   this->declare_parameter<bool>("active_node", true);
   //by default 200ms
   this->declare_parameter<int>("lease_duration", 400);
+  //command to run the innactive node
+  this->declare_parameter<std::string>("innactive_node_command", "ros2 run stubborn_buddies linktime_composition --ros-args -p active_node:=false&");
   
   configure();
   activate();
@@ -57,7 +59,7 @@ void LifecycleWatchdog::missed_hearbeat()
     RCLCPP_WARN(get_logger(), "Got a missed hb at %s, spawning a " 
                               "new inactive process",
                 status_topic_.c_str());
-    system("ros2 run stubborn_buddies linktime_composition --ros-args -p active_node:=false&");
+    system(innactive_node_command_.c_str());
   }
 }
 
@@ -67,7 +69,8 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
 {
   //Retrieve parameters
   this->get_parameter("active_node", active_node_);
-  lease_duration_ = std::chrono::milliseconds(this->get_parameter("lease_duration").as_int());  
+  lease_duration_ = std::chrono::milliseconds(this->get_parameter("lease_duration").as_int()); 
+  this->get_parameter("innactive_node_command", innactive_node_command_);
   
   qos_profile_
       .liveliness(RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC)
@@ -91,7 +94,7 @@ rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
       heartbeat_topic_ = std::string(stubborn_values::DEFAULT_INACTIVE_HEARTBEAT_NAME);
       status_topic_ = std::string(stubborn_values::DEFAULT_INACTIVE_STATUS_NAME);
       //spawn the inactive node
-      system("ros2 run stubborn_buddies linktime_composition --ros-args -p active_node:=false&");
+      system(innactive_node_command_.c_str());
     }
     else
     {

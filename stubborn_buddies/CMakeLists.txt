@@ -20,7 +20,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(std_msgs REQUIRED)
-find_package(sw_watchdog_msgs REQUIRED)
+find_package(stubborn_buddies_msgs REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 # uncomment the following section in order to fill in
 # further dependencies manually.
@@ -39,7 +39,7 @@ ament_target_dependencies(lifecycle_watchdog
   "rclcpp"
   "rclcpp_components"
   "std_msgs"
-  "sw_watchdog_msgs"
+  "stubborn_buddies_msgs"
   "rclcpp_lifecycle")
 rclcpp_components_register_nodes(lifecycle_watchdog "lifecycle_watchdog::LifecycleWatchdog")
 set(node_plugins "${node_plugins}lifecycle_watchdog::LifecycleWatchdog;$<TARGET_FILE:lifecycle_watchdog>\n")
@@ -52,7 +52,7 @@ ament_target_dependencies(lifecycle_heartbeat
   "rclcpp"
   "rclcpp_components"
   "std_msgs"
-  "sw_watchdog_msgs"
+  "stubborn_buddies_msgs"
   "rclcpp_lifecycle")
 rclcpp_components_register_nodes(lifecycle_heartbeat "lifecycle_heartbeat::LifecycleHeartbeat")
 set(node_plugins "${node_plugins}lifecycle_heartbeat::LifecycleHeartbeat;$<TARGET_FILE:lifecycle_heartbeat>\n")
@@ -66,7 +66,7 @@ ament_target_dependencies(lifecycle_talker
   "rclcpp_components"
   "std_msgs"
   "rclcpp_lifecycle"
-  "sw_watchdog_msgs")
+  "stubborn_buddies_msgs")
 rclcpp_components_register_nodes(lifecycle_talker "lifecycle_talker::LifecycleTalker")
 set(node_plugins "${node_plugins}lifecycle_talker::LifecycleTalker;$<TARGET_FILE:lifecycle_talker>\n")
 

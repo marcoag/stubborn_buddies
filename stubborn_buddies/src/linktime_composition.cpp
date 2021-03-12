@@ -20,7 +20,6 @@
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_components/node_factory.hpp"
 
-
 #define LINKTIME_COMPOSITION_LOGGER_NAME "linktime_composition"
 
 int main(int argc, char * argv[])

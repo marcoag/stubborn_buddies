@@ -81,9 +81,9 @@ add_executable(linktime_composition
   src/linktime_composition.cpp)
 
 set(libs
-  lifecycle_talker
   lifecycle_heartbeat
-  lifecycle_watchdog)
+  lifecycle_watchdog
+  lifecycle_talker)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set(libs
     "-Wl,--no-as-needed"
@@ -97,18 +97,32 @@ ament_target_dependencies(linktime_composition
   "rclcpp"
   "rclcpp_components")
 
+#ament_export_include_directories(include)
+ament_export_targets(lifecycle_heartbeat HAS_LIBRARY_TARGET)
+ament_export_targets(lifecycle_watchdog HAS_LIBRARY_TARGET)
+ament_export_dependencies(rclcpp rclcpp_lifecycle stubborn_buddies_msgs rclcpp_components)
+
+install(TARGETS
+  lifecycle_heartbeat
+  EXPORT lifecycle_heartbeat
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib)
+
 install(TARGETS
   lifecycle_watchdog
-  lifecycle_heartbeat
+  EXPORT lifecycle_watchdog
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib)
+
+install(TARGETS
   lifecycle_talker
   ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin)
+  LIBRARY DESTINATION lib)
 
 install(TARGETS
   linktime_composition
   DESTINATION lib/${PROJECT_NAME})
-  
+
 install(DIRECTORY
   launch
   DESTINATION share/${PROJECT_NAME})

@@ -9,10 +9,17 @@ def generate_launch_description():
         launch.actions.DeclareLaunchArgument('active_node', default_value="true",
                                              description='Indicates if this process contains the main active node'),
         launch_ros.actions.Node(
-            package='failover_cluster',
+            package='stubborn_buddies',
             executable='linktime_composition',
             output='screen',
-            name='linktime_composition',
+            name='lifetime_talker',
+            namespace='talker',
+            remappings=[
+              ('/talker/**','/talker/yin' )
+            ],
             parameters=[{'heartbeat_period': 200,
                          'lease_duration': 400,
-                         'acitive_node': launch.substitutions.LaunchConfiguration('active_node')}])])
+                         'active_namespace' : 'yin',
+                         'acitive_node': 'true'}]),
+
+                         ])

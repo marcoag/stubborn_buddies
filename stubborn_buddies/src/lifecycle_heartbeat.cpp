@@ -26,8 +26,6 @@ using namespace std::chrono_literals;
 constexpr std::chrono::milliseconds LEASE_DELTA = 20ms; ///< Buffer added to heartbeat to define lease.
 
 constexpr char DEFAULT_HEARTBEAT_NAME[] = "heartbeat";
-constexpr char DEFAULT_INACTIVE_HEARTBEAT_NAME[] = "inactive_heartbeat";
-constexpr char DEFAULT_ACTIVE_STATUS_NAME[] = "active_status";
 
 namespace lifecycle_heartbeat
 {
@@ -38,57 +36,35 @@ public:
     
   explicit LifecycleHeartbeat(const rclcpp::NodeOptions& options)
     : rclcpp_lifecycle::LifecycleNode("lifecycle_heartbeat", options),
-    heartbeat_topic_(DEFAULT_HEARTBEAT_NAME), active_node_(true),
-    heartbeat_period_(200ms), qos_profile_(1),
-    active_status_topic_(DEFAULT_ACTIVE_STATUS_NAME)
-    
+    heartbeat_topic_(DEFAULT_HEARTBEAT_NAME),
+    heartbeat_period_(200ms), qos_profile_(1)
   {
-    //Declare parameters
-    //by default we are the active node
-    this->declare_parameter<bool>("active_node", true);
-    //by default 200ms
+
     this->declare_parameter<int>("heartbeat_period", 200);
-    
+    this->declare_parameter<std::string>("subns", "yin");
+    this->declare_parameter<std::string>("main_node_name", std::string());
+    this->declare_parameter<bool>("verbose", true);
+
     configure();
     activate();
   }
 
   rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn
     on_configure(const rclcpp_lifecycle::State &)
-  {  
+  {
     //Retreive parameters values
-    this->get_parameter("active_node", active_node_);
     heartbeat_period_ = std::chrono::milliseconds(this->get_parameter("heartbeat_period").as_int());  
-    
+    this->get_parameter("subns", subns_);
+    this->get_parameter("main_node_name", main_node_name_);
+    this->get_parameter("verbose", verbose_);
+
     // Initialize and configure node
     qos_profile_
       .liveliness(RMW_QOS_POLICY_LIVELINESS_MANUAL_BY_TOPIC)
       .liveliness_lease_duration(heartbeat_period_ + LEASE_DELTA)
       .deadline(heartbeat_period_ + LEASE_DELTA);
 
-    //publish on /heartbeat if active node otherwise publish on /watchdogs_heartbeat
-    //and subscribe to the active node status in case we need to take over
-    if(active_node_)
-      heartbeat_topic_ = std::string(DEFAULT_HEARTBEAT_NAME);
-    else
-    {
-      heartbeat_topic_ = std::string(DEFAULT_INACTIVE_HEARTBEAT_NAME);
-      status_sub_ = this->create_subscription<stubborn_buddies_msgs::msg::Status>(
-        active_status_topic_,
-        10,
-        [this](const typename stubborn_buddies_msgs::msg::Status::SharedPtr msg) -> void {
-                RCLCPP_WARN(get_logger(), "Watchdog rised at %s, "
-                                          "self reconfiguration triggered",
-                            active_status_topic_.c_str(),
-                            msg->stamp.sec);
-                deactivate();
-                cleanup();
-                this->set_parameter(rclcpp::Parameter("active_node", true));
-                configure();
-                activate();
-        });
-    }
-
+    heartbeat_topic_ = std::string("/" + main_node_name_ + "/" + subns_ + "/" + DEFAULT_HEARTBEAT_NAME);
     hb_publisher_ = this->create_publisher<stubborn_buddies_msgs::msg::Heartbeat>(heartbeat_topic_, qos_profile_);
 
     RCUTILS_LOG_INFO_NAMED(get_name(), "on_configure() is called.");
@@ -99,9 +75,8 @@ public:
     on_activate(const rclcpp_lifecycle::State &)
   {
     hb_timer_ = this->create_wall_timer(heartbeat_period_, std::bind(&LifecycleHeartbeat::hb_timer_callback, this));
-    
     hb_publisher_->on_activate();
-    
+
     RCUTILS_LOG_INFO_NAMED(get_name(), "on_activate() is called.");
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
   }
@@ -110,13 +85,13 @@ public:
     on_deactivate(const rclcpp_lifecycle::State &)
   {
     hb_publisher_->on_deactivate();
-    
+
     if(status_sub_)
     {
       status_sub_.reset(); // there does not seem to be a 'deactivate' for subscribers.
       status_sub_ = nullptr;
     }
-    
+
     RCUTILS_LOG_INFO_NAMED(get_name(), "on_deactivate() is called.");
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
   }
@@ -127,13 +102,12 @@ public:
     
     hb_publisher_.reset();
     hb_timer_.reset();
-    
+
     if(status_sub_)
     {
       status_sub_.reset(); // there does not seem to be a 'deactivate' for subscribers.
       status_sub_ = nullptr;
     }
-
 
     RCUTILS_LOG_INFO_NAMED(get_name(), "on_cleanup() is called.");
     return rclcpp_lifecycle::node_interfaces::LifecycleNodeInterface::CallbackReturn::SUCCESS;
@@ -144,7 +118,7 @@ public:
   {
     hb_publisher_.reset();
     hb_timer_.reset();
-    
+
     if(status_sub_)
     {
       status_sub_.reset(); // there does not seem to be a 'deactivate' for subscribers.
@@ -156,25 +130,27 @@ public:
   } 
 
 private: 
-  
+
   void hb_timer_callback()
   {
     auto message = stubborn_buddies_msgs::msg::Heartbeat();
     rclcpp::Time now = this->get_clock()->now();
     message.stamp = now;
-    RCLCPP_INFO(this->get_logger(), "Publishing heartbeat sent at [%f]",  now.seconds());
+    if(verbose_)
+      RCLCPP_INFO(this->get_logger(), "Publishing heartbeat sent at [%f]",  now.seconds());
     hb_publisher_->publish(message);
   }
-  
+
   rclcpp_lifecycle::LifecyclePublisher<stubborn_buddies_msgs::msg::Heartbeat>::SharedPtr hb_publisher_ = nullptr;
   rclcpp::Subscription<stubborn_buddies_msgs::msg::Status>::SharedPtr status_sub_ = nullptr;
-  
+
   std::string heartbeat_topic_;
-  bool active_node_;
   std::chrono::milliseconds heartbeat_period_;
   rclcpp::TimerBase::SharedPtr hb_timer_;
   rclcpp::QoS qos_profile_;
-  const std::string active_status_topic_;
+  std::string subns_;
+  std::string main_node_name_;
+  bool verbose_;
 
 };
 

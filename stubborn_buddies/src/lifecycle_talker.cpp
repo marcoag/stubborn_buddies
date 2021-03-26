@@ -24,7 +24,7 @@
 
 using namespace std::chrono_literals;
 
-constexpr char DEFAULT_ACTIVE_STATUS_NAME[] = "active_status";
+constexpr char DEFAULT_STATUS_NAME[] = "status";
 
 namespace lifecycle_talker
 {
@@ -36,13 +36,13 @@ public:
   explicit LifecycleTalker(const rclcpp::NodeOptions& options):
     LifecycleNode("lifecycle_talker", options),
     active_node_(true), count_(0), talker_period_(1000ms),
-    active_status_topic_(DEFAULT_ACTIVE_STATUS_NAME)
+    active_status_topic_(DEFAULT_STATUS_NAME)
   {
     //Declare parameters
-    //by default we are the active node
     this->declare_parameter<bool>("active_node", true);
-    //by default 200ms
     this->declare_parameter<int>("talker_period", 1000);
+    this->declare_parameter<std::string>("buddy_subns", "yang");
+    this->declare_parameter<std::string>("main_node_name", std::string());
     
     configure();
 
@@ -55,7 +55,11 @@ public:
   {
     //Retrieve parameters values
     this->get_parameter("active_node", active_node_);
-    talker_publisher_ = this->create_publisher<std_msgs::msg::String>("chatter", 10);
+    talker_publisher_ = this->create_publisher<std_msgs::msg::String>("/chatter", 10);
+    this->get_parameter("buddy_subns", buddy_subns_);
+    this->get_parameter("main_node_name", main_node_name_);
+    
+    active_status_topic_ = "/" + main_node_name_ + "/" + buddy_subns_ + "/" + std::string(DEFAULT_STATUS_NAME);
     
     //only suscribe for eventual activation if we are the inactive node
     if(!active_node_)
@@ -84,7 +88,8 @@ public:
     //Retrieve parameters values
     talker_period_ = std::chrono::milliseconds(this->get_parameter("talker_period").as_int());
     
-    timer_ = this->create_wall_timer(talker_period_, std::bind(&LifecycleTalker::talker_timer_callback, this));
+    timer_ = this->create_wall_timer(talker_period_, 
+                                     std::bind(&LifecycleTalker::talker_timer_callback, this));
     talker_publisher_->on_activate();
     
     RCUTILS_LOG_INFO_NAMED(get_name(), "on_activate() is called.");
@@ -153,7 +158,9 @@ private:
   rclcpp::TimerBase::SharedPtr timer_;
   size_t count_;
   std::chrono::milliseconds talker_period_;
-  const std::string active_status_topic_;
+  std::string active_status_topic_;
+  std::string buddy_subns_;
+  std::string main_node_name_;
 
 };
 
